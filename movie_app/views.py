@@ -10,6 +10,8 @@ from datetime import datetime
 from textblob import TextBlob
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
+from django.shortcuts import render
+
 
 def scrape_letterboxd_tamil_movies():
     # Set Chrome options
@@ -155,3 +157,15 @@ def perform_movie_ranking():
         movie.save(update_fields=['ranking'])
 
     print("Ranking update complete.")
+
+def home(request):
+    movies = Movie.objects.all().order_by('-ranking')
+    print(movies)
+    movie_data = [{
+        'title': movie.title,
+        'release_date': movie.release_date,
+        'user_rating': movie.user_rating,
+        'ranking': movie.ranking
+    } for movie in movies]
+    return render(request, 'home.html', {'movie_data': movie_data})
+

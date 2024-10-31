@@ -1,0 +1,119 @@
+<!-- In templates/movie_dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; }
+        header { text-align: center; margin-bottom: 20px; }
+        .filter-form { text-align: center; margin-bottom: 20px; }
+        .filter-form label { margin: 0 10px; }
+        .filter-form input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 0 5px;
+            transition: border-color 0.3s;
+        }
+        .filter-form input[type="date"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        .filter-form button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+        .filter-form button:hover {
+            background-color: #0056b3;
+        }
+        .stats-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            text-align: center;
+            width: 220px; /* Slightly wider for the release date */
+        }
+        .stat-card h2 { margin: 0; font-size: 20px; }
+        .stat-card p { margin: 5px 0; font-size: 14px; color: #555; }
+        .stat-icon { font-size: 40px; color: #007bff; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Movie Rankings Dashboard</h1>
+    </header>
+
+    <main>
+        <div class="filter-form">
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date">
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date">
+            <button id="filterButton">Filter</button>
+            <button id="clearFilterButton">Clear Filter</button>
+        </div>
+
+        <div class="stats-container" id="moviesContainer">
+            {% for movie in movie_data %}
+                <div class="stat-card movie-card" data-release-date="{{ movie.release_date }}">
+                    <div class="stat-icon">
+                        <i class="fas fa-film"></i>
+                    </div>
+                    <h2>{{ movie.title }}</h2>
+                    <p><strong>Ranking:</strong> {{ movie.ranking }}</p>
+                    <p><strong>User Rating:</strong> {{ movie.user_rating }}</p>
+                    <p><strong>Release Date:</strong> {{ movie.release_date }}</p> <!-- Display release date -->
+                </div>
+            {% empty %}
+                <div class="stat-card">
+                    <h2>No Movies Available</h2>
+                    <p>Please check back later.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('filterButton').addEventListener('click', function() {
+            const startDate = new Date(document.getElementById('start_date').value);
+            const endDate = new Date(document.getElementById('end_date').value);
+            const movieCards = document.querySelectorAll('.movie-card');
+
+            movieCards.forEach(card => {
+                const releaseDate = new Date(card.getAttribute('data-release-date'));
+
+                // Check if the movie's release date is within the selected range
+                if ((isNaN(startDate) || releaseDate >= startDate) &&
+                    (isNaN(endDate) || releaseDate <= endDate)) {
+                    card.style.display = ''; // Show the movie card
+                } else {
+                    card.style.display = 'none'; // Hide the movie card
+                }
+            });
+        });
+
+        document.getElementById('clearFilterButton').addEventListener('click', function() {
+            // Clear the filter inputs
+            document.getElementById('start_date').value = '';
+            document.getElementById('end_date').value = '';
+
+            // Show all movie cards
+            const movieCards = document.querySelectorAll('.movie-card');
+            movieCards.forEach(card => {
+                card.style.display = ''; // Show all
+            });
+        });
+    </script>
+</body>
+</html>
