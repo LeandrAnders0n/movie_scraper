@@ -16,12 +16,12 @@ from django.shortcuts import render
 def scrape_letterboxd_tamil_movies():
     # Set Chrome options
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run without opening a browser
+    chrome_options.add_argument("--headless")  
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")  # Disable GPU to avoid related errors
-    chrome_options.add_argument("--disable-software-rasterizer")  # Disable rasterization to reduce rendering issues
-    chrome_options.add_argument("--log-level=3")  # Suppress most logs from Chrome
+    chrome_options.add_argument("--disable-gpu")  
+    chrome_options.add_argument("--disable-software-rasterizer")  
+    chrome_options.add_argument("--log-level=3")  
 
     # Initialize the Chrome WebDriver
     service = Service(ChromeDriverManager().install())
@@ -29,11 +29,13 @@ def scrape_letterboxd_tamil_movies():
     
     base_url = 'https://letterboxd.com/films/language/tamil/page/'
 
-    page = 1  # Start from the first page
+    # Start from the first page
+    page = 1  
     while True:
         url = f"{base_url}{page}/"
         browser.get(url)
-        time.sleep(3)  # Allow time for the page to fully load
+        # Allow time for the page to fully load
+        time.sleep(3)  
 
         # Parse HTML content
         innerHTML = browser.execute_script("return document.body.innerHTML")
@@ -55,7 +57,8 @@ def scrape_letterboxd_tamil_movies():
 
             # Save to database
             try:
-                release_date = datetime.strptime(f"{year}-01-01", "%Y-%m-%d")  # Default to Jan 1 if only year is provided
+                # Default to Jan 1 if only year is provided
+                release_date = datetime.strptime(f"{year}-01-01", "%Y-%m-%d")  
                 Movie.objects.create(
                     title=title,
                     genre='Tamil',
@@ -68,14 +71,15 @@ def scrape_letterboxd_tamil_movies():
                 print(f"Movie {title} already exists in the database.")
             except ValueError as e:
                 print(f"Failed to save {title}: {e}")
-        
-        page += 1  # Move to the next page
+        # Move to the next page
+        page += 1  
 
     browser.quit()
 
 def scrape_review_content_and_rating(browser, review_link):
     browser.get(review_link)
-    time.sleep(3)  # Wait for the page to load
+    # Wait for the page to load
+    time.sleep(3)  
 
     # Initialize containers for aggregated review content and ratings
     all_reviews = []
@@ -98,13 +102,16 @@ def scrape_review_content_and_rating(browser, review_link):
         user_ratings = tree.xpath('//ul[@class="film-popular-review"]/li[@class="film-detail"]//span[contains(@class, "rating -green")]/text()')
         for rating in user_ratings:
             rating = rating.strip()
+            # Convert stars to numeric rating by counting symbols
             if "★" in rating:
-                all_ratings.append(len(rating) * 2)  # Convert stars to numeric rating by counting symbols
+                all_ratings.append(len(rating) * 2)  
+            # Represent half-star ratings
             elif "½" in rating:
-                all_ratings.append(1.5)  # Represent half-star ratings
+                all_ratings.append(1.5)  
             else:
                 try:
-                    all_ratings.append(float(rating))  # Convert to float if directly a numeric rating
+                    # Convert to float if directly a numeric rating
+                    all_ratings.append(float(rating))  
                 except ValueError:
                     print("Unexpected rating format encountered:", rating)
 
@@ -115,10 +122,10 @@ def scrape_review_content_and_rating(browser, review_link):
             browser.get(next_page_url)
             time.sleep(2)
         else:
-            break  # Exit loop if no more review pages
+            break  
 
     # Aggregate all review content and calculate the average rating
-    combined_review_content = " ".join(all_reviews).strip()  # Join all reviews into a single string
+    combined_review_content = " ".join(all_reviews).strip()  
     average_user_rating = sum(all_ratings) / len(all_ratings) if all_ratings else None
 
     return combined_review_content, average_user_rating
@@ -135,7 +142,8 @@ def perform_movie_ranking():
     for movie in movies:
         # Sentiment score based on review content
         blob = TextBlob(movie.review_content)
-        sentiment_score = blob.sentiment.polarity  # Range between -1 and 1
+        # Range between -1 and 1
+        sentiment_score = blob.sentiment.polarity 
         sentiment_scores.append(sentiment_score)
 
         # Add user ratings to the array for normalization
@@ -150,8 +158,8 @@ def perform_movie_ranking():
     for i, movie in enumerate(movies):
         # Calculate the ranking using sentiment and user rating only
         ranking = (
-            normalized_sentiment_scores[i] * 0.8 +  # Higher weight to sentiment
-            normalized_user_ratings[i] * 0.2         # Lower weight to user rating
+            normalized_sentiment_scores[i] * 0.8 +  
+            normalized_user_ratings[i] * 0.2         
         )
         movie.ranking = ranking
         movie.save(update_fields=['ranking'])
