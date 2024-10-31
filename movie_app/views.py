@@ -7,6 +7,9 @@ from movie_app.models import Movie
 from django.db import IntegrityError
 import time
 from datetime import datetime
+from textblob import TextBlob
+from sklearn.preprocessing import MinMaxScaler
+import numpy as np
 
 def scrape_letterboxd_tamil_movies():
     # Set Chrome options
@@ -117,3 +120,38 @@ def scrape_review_content_and_rating(browser, review_link):
     average_user_rating = sum(all_ratings) / len(all_ratings) if all_ratings else None
 
     return combined_review_content, average_user_rating
+
+def perform_movie_ranking():
+    # Fetch all movies from the database
+    movies = Movie.objects.all()
+
+    # Initialize arrays for scaling
+    sentiment_scores = []
+    user_ratings = []
+
+    # First pass: Calculate sentiment scores and populate arrays
+    for movie in movies:
+        # Sentiment score based on review content
+        blob = TextBlob(movie.review_content)
+        sentiment_score = blob.sentiment.polarity  # Range between -1 and 1
+        sentiment_scores.append(sentiment_score)
+
+        # Add user ratings to the array for normalization
+        user_ratings.append(float(movie.user_rating or 0))
+
+    # Normalize sentiment and user rating scores to 0–1 range
+    scaler = MinMaxScaler()
+    normalized_sentiment_scores = scaler.fit_transform(np.array(sentiment_scores).reshape(-1, 1)).flatten()
+    normalized_user_ratings = scaler.fit_transform(np.array(user_ratings).reshape(-1, 1)).flatten()
+
+    # Second pass: Assign ranking based on weighted sum
+    for i, movie in enumerate(movies):
+        # Calculate the ranking using sentiment and user rating only
+        ranking = (
+            normalized_sentiment_scores[i] * 0.8 +  # Higher weight to sentiment
+            normalized_user_ratings[i] * 0.2         # Lower weight to user rating
+        )
+        movie.ranking = ranking
+        movie.save(update_fields=['ranking'])
+
+    print("Ranking update complete.")
