@@ -39,8 +39,8 @@ The task involves:
 ### Installation
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone git@github.com:LeandrAnders0n/movie_scraper.git
+   cd movie_scraper
    ```
 
 2. **Install dependencies**:
