@@ -111,7 +111,7 @@ webdriver-manager install
    ```
 
 5. **Access the Dashboard**:
-   Open the browser and go to `http://127.0.0.1:8000/dashboard/` to view the movie rankings dashboard.
+   Open the browser and go to `http://127.0.0.1:8000/home/` to view the movie rankings dashboard.
 
 ### Filter Movies by Release Date
    - Use the date fields and filter buttons on the dashboard to display movies within a specific release date range.
