@@ -77,7 +77,8 @@ def scrape_letterboxd_tamil_movies():
 # Scraping Functions
 def scrape_review_content_and_rating(browser, review_link, movie_instance):
     browser.get(review_link)
-    time.sleep(3)  # Allow page to load
+    # Allow page to load
+    time.sleep(3)  
     all_reviews = []
     all_ratings = []
 
@@ -131,8 +132,6 @@ def scrape_review_content_and_rating(browser, review_link, movie_instance):
     average_user_rating = sum(all_ratings) / len(all_ratings) if all_ratings else None
     return average_user_rating
 
-from sklearn.preprocessing import MinMaxScaler
-import numpy as np
 
 def perform_movie_ranking():
     # Fetch all movies from the database
@@ -167,12 +166,11 @@ def perform_movie_ranking():
             normalized_sentiment_scores[i] * 0.8 +  
             normalized_user_ratings[i] * 0.2         
         )
-        movie.ranking = round(ranking, 3)  # Round to 3 decimal places
+        # Round to 3 decimal places
+        movie.ranking = round(ranking, 3) 
         movie.save(update_fields=['ranking'])
 
     print("Ranking update complete.")
-
-
 
 
 def home(request):
