@@ -40,29 +40,6 @@
         border-color: #007bff;
         outline: none;
       }
-      .search-container {
-        display: inline-flex;
-        align-items: center;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        overflow: hidden;
-      }
-      .search-container input[type="text"] {
-        border: none;
-        padding: 10px;
-        outline: none;
-      }
-      .search-container button {
-        background-color: #007bff;
-        color: white;
-        border: none;
-        padding: 10px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-      .search-container button:hover {
-        background-color: #0056b3;
-      }
       .filter-form button {
         background-color: #007bff;
         color: white;
@@ -114,23 +91,19 @@
     <main>
       <div class="filter-form">
         <label for="title_search">Search by Title:</label>
-        <div class="search-container">
-          <input
-            type="text"
-            id="title_search"
-            placeholder="Enter movie title..."
-          />
-          <button id="searchButton">
-            <i class="fas fa-search"></i>
-          </button>
-        </div>
+        <input
+          type="text"
+          id="title_search"
+          placeholder="Enter movie title..."
+        />
 
         <label for="start_date">Start Date:</label>
         <input type="date" id="start_date" />
         <label for="end_date">End Date:</label>
         <input type="date" id="end_date" />
 
-        <button id="clearFilterButton">Clear Filter</button>
+        <button id="filterButton">Filter</button>
+        <button id="clearFilterButton">Clear Filters</button>
       </div>
 
       <div class="stats-container" id="moviesContainer">
@@ -158,27 +131,29 @@
     </main>
 
     <script>
+      // Combined Filter by Title and Date
       document
-        .getElementById("searchButton")
+        .getElementById("filterButton")
         .addEventListener("click", function () {
           const titleSearch = document
             .getElementById("title_search")
             .value.toLowerCase();
-          const startDate = new Date(
-            document.getElementById("start_date").value
-          );
-          const endDate = new Date(document.getElementById("end_date").value);
+          const startDateValue = document.getElementById("start_date").value;
+          const endDateValue = document.getElementById("end_date").value;
+          const startDate = startDateValue ? new Date(startDateValue) : null;
+          const endDate = endDateValue ? new Date(endDateValue) : null;
           const movieCards = document.querySelectorAll(".movie-card");
 
           movieCards.forEach((card) => {
-            const releaseDate = new Date(
-              card.getAttribute("data-release-date")
-            );
+            const releaseDateValue = card.getAttribute("data-release-date");
+            const releaseDate = releaseDateValue
+              ? new Date(releaseDateValue)
+              : null;
             const title = card.getAttribute("data-title");
 
             const withinDateRange =
-              (isNaN(startDate) || releaseDate >= startDate) &&
-              (isNaN(endDate) || releaseDate <= endDate);
+              (!startDate || (releaseDate && releaseDate >= startDate)) &&
+              (!endDate || (releaseDate && releaseDate <= endDate));
 
             const titleMatches = !titleSearch || title.includes(titleSearch);
 
@@ -190,6 +165,7 @@
           });
         });
 
+      // Clear Filters
       document
         .getElementById("clearFilterButton")
         .addEventListener("click", function () {
